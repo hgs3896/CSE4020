@@ -15,21 +15,21 @@ vertices = np.array([
 ])
 
 # D. When the program starts, the vertices are connected with GL_LINE_LOOP.
-PrimitiveType = 1
+PrimitiveType = GL_LINE_LOOP
 
 # E. If the keys 1, 2, 3, ... 9, 0 are entered, the primitive type should be changed.
 # i. Hint: Use a global variable to store the primitive type
 KeyEnums = {
-    glfw.KEY_0: 10,
-    glfw.KEY_1: 1,
-    glfw.KEY_2: 2,
-    glfw.KEY_3: 3,
-    glfw.KEY_4: 4,
-    glfw.KEY_5: 5,
-    glfw.KEY_6: 6,
-    glfw.KEY_7: 7,
-    glfw.KEY_8: 8,
-    glfw.KEY_9: 9,
+    glfw.KEY_1: GL_POINTS,
+    glfw.KEY_2: GL_LINES,
+    glfw.KEY_3: GL_LINE_STRIP,
+    glfw.KEY_4: GL_LINE_LOOP,
+    glfw.KEY_5: GL_TRIANGLES,
+    glfw.KEY_6: GL_TRIANGLE_STRIP,
+    glfw.KEY_7: GL_TRIANGLE_FAN,
+    glfw.KEY_8: GL_QUADS,
+    glfw.KEY_9: GL_QUAD_STRIP,
+    glfw.KEY_0: GL_POLYGON,
 }
 
 def key_callback(window, key, scancode, action, mods):
