@@ -36,13 +36,19 @@ gComposedM = np.identity(3)
 
 ten_degree_rad = np.deg2rad(10)
 def scale(s):
-    return np.array([s,0,0,0,s,0,0,0,1]).reshape(3,3)
+    return np.diag([s,s,1])
 
 def rotate(rad):
-    return np.array([np.cos(rad), -np.sin(rad), 0, np.sin(rad), np.cos(rad), 0, 0, 0, 1]).reshape(3,3)
+    c, s = np.cos(rad), np.sin(rad)
+    r = np.identity(3)
+    r[0:2,0:2] = [[c, -s], [s, c]]
+    return r
 
-def shearX(offset):
-    return np.array([1,offset,0,0,1,0,0,0,1]).reshape(3,3)
+def shear(offsetX=0, offsetY=0):
+    sh = np.identity(3)
+    sh[0, 1] = offsetX
+    sh[1, 0] = offsetY
+    return sh
 
 def reflectX():
     M = np.identity(3)
@@ -54,8 +60,8 @@ KeyFuncs = {
     glfw.KEY_E: lambda M: scale(1.1) @ M,
     glfw.KEY_S: lambda M: rotate(ten_degree_rad) @ M,
     glfw.KEY_D: lambda M: rotate(-ten_degree_rad) @ M,
-    glfw.KEY_X: lambda M: shearX(-0.1) @ M,
-    glfw.KEY_C: lambda M: shearX(0.1) @ M,
+    glfw.KEY_X: lambda M: shear(-0.1) @ M,
+    glfw.KEY_C: lambda M: shear(0.1) @ M,
     glfw.KEY_R: lambda M: reflectX() @ M,
     glfw.KEY_1: lambda M: np.identity(3),
 }
@@ -77,6 +83,7 @@ def main():
         glfw.terminate()
         return
 
+    # Set a key callback function to handle the keyboard events
     glfw.set_key_callback(window, key_callback)
 
     # Make the window's context current
