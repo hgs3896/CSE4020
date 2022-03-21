@@ -32,7 +32,7 @@ def render(T):
 
 # C. If you press or repeat a key, the triangle should be transformed as shown in the Table.
 # D. Transformations should be accumulated (composed with previous one) unless you press '1'.
-M = np.identity(3)
+gComposedM = np.identity(3)
 
 ten_degree_rad = np.deg2rad(10)
 def scale(s):
@@ -63,8 +63,8 @@ KeyFuncs = {
 def key_callback(window, key, scancode, action, mods):
     if action==glfw.PRESS:
         if key in KeyFuncs:
-            global M
-            M = KeyFuncs[key](M)
+            global gComposedM
+            gComposedM = KeyFuncs[key](gComposedM)
 
 def main():
     # Initialize the library
@@ -88,7 +88,7 @@ def main():
         glfw.poll_events()
 
         # Render here, e.g. using pyOpenGL
-        render(M)
+        render(gComposedM)
 
         # Swap front and back buffers
         glfw.swap_buffers(window)
