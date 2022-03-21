@@ -35,8 +35,8 @@ def render(T):
 gComposedM = np.identity(3)
 
 ten_degree_rad = np.deg2rad(10)
-def scale(s):
-    return np.diag([s,s,1])
+def scale(sx=1, sy=1):
+    return np.diag([sx,sy,1])
 
 def rotate(rad):
     c, s = np.cos(rad), np.sin(rad)
