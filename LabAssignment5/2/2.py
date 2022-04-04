@@ -83,12 +83,12 @@ def render():
     u = u / np.linalg.norm(u)
     v = np.cross(w, u)
     
-    alpha = np.degrees(f(np.array([0, 0, 1]), eye * np.array([0, 1, 1])))
+    alpha = np.degrees(f(eye * np.array([0, 1, 1]), eye))
     beta = np.degrees(f(np.array([0, 0, 1]), eye * np.array([1, 0, 1])))
     
-    glTranslatef(-u @ eye, -v @ eye, -w @ eye)
     glRotatef(alpha, 1, 0, 0)
     glRotatef(-beta, 0, 1, 0)
+    glTranslatef(*(-eye))
     
     drawFrame()
 
