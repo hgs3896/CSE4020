@@ -86,9 +86,9 @@ def render():
     alpha = np.degrees(f(eye * np.array([0, 1, 1]), eye))
     beta = np.degrees(f(np.array([0, 0, 1]), eye * np.array([1, 0, 1])))
     
+    glTranslatef(0, 0, -np.linalg.norm(eye))
     glRotatef(alpha, 1, 0, 0)
     glRotatef(-beta, 0, 1, 0)
-    glTranslatef(*(-eye))
     
     drawFrame()
 
