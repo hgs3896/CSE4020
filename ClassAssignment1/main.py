@@ -107,7 +107,7 @@ def scroll_callback(window, xoffset, yoffset):
 
     global zoom
     if np.abs(gScrollOffset[1]) > 0.001:
-        zoom -= gScrollOffset[1] * 10
+        zoom -= gScrollOffset[1] * 100
         zoom = np.clip(zoom, 1, 100)
 
 
