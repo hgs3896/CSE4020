@@ -77,19 +77,43 @@ def render():
 
     # Replace this call with two glRotatef() calls and one glTranslatef() call
     eye = np.array([3, 3, 3])
-    w = eye / np.linalg.norm(eye)
-    up = np.array([0, 1, 0])
-    u = np.cross(up, w)
-    u = u / np.linalg.norm(u)
-    v = np.cross(w, u)
-    
-    alpha = np.degrees(f(eye * np.array([0, 1, 1]), eye))
-    beta = np.degrees(f(np.array([0, 0, 1]), eye * np.array([1, 0, 1])))
-    
-    glTranslatef(0, 0, -np.linalg.norm(eye))
-    glRotatef(alpha, 1, 0, 0)
-    glRotatef(-beta, 0, 1, 0)
-    
+    d = eye - np.zeros(3)
+
+    # w = eye / np.linalg.norm(eye)
+    # up = np.array([0, 1, 0])
+    # u = np.cross(up, w)
+    # u = u / np.linalg.norm(u)
+    # v = np.cross(w, u)
+    # M = np.eye(4)
+    # M[0, :3] = u
+    # M[1, :3] = v
+    # M[2, :3] = w
+    # M[3, :3] = eye
+
+    elevation = np.degrees(f(d * np.array([1, 0, 1]), d))
+    azimuth = np.degrees(f(np.array([0, 0, 1]), d * np.array([1, 0, 1])))
+
+    # 방법 0.
+    # gluLookAt(*eye, 0,0,0, 0,1,0)
+
+    # 방법 1.
+    glTranslatef(0, 0, -np.linalg.norm(d))
+    # world 기준으로 -z축을 방향으로 이동
+    # view space 기준으로 +z축을 방향으로 이동
+    glRotatef(-elevation, -1, 0, 0)
+    # world 기준으로 -x축을 기준으로 시계 방향 회전
+    # view space 기준으로 -x축을 기준으로 반시계 방향 회전
+    glRotatef(-azimuth, 0, 1, 0)
+    # world 기준으로  y축을 기준으로 시계 방향 회전
+    # view space 기준으로  y축을 기준으로 반시계 방향 회전
+
+    # 방법 2.
+    # glRotatef(elevation, 1, 0, 0)
+    # glRotatef(-azimuth, 0, 1, 0)
+    # glTranslatef(*(-eye))
+
+    print(glGetDoublev(GL_MODELVIEW_MATRIX).T)
+
     drawFrame()
 
     glColor3ub(255, 255, 255)
