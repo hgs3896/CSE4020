@@ -108,7 +108,7 @@ def cursor_callback(window, xpos, ypos):
         orbit_s = gCursorPos
     elif MOUSE_BUTTON_LEFT == MOUSE_BUTTON_STATE["TRIGGERING"]:
         orbit_e = gCursorPos
-        orbit = old_orbit + (orbit_e - orbit_s)
+        orbit = old_orbit + np.array([1, -1]) * (orbit_e - orbit_s)
     elif MOUSE_BUTTON_LEFT == MOUSE_BUTTON_STATE["TRIGGER_END"]:
         orbit_e = gCursorPos
 
@@ -214,7 +214,7 @@ def parse_obj_format(file):
                 if len(vindex) not in current["vertex_indices"]:
                     current["vertex_indices"][len(vindex)] = []
                 current["vertex_indices"][len(vindex)].append(vindex)
-
+            
             if len(nindex) != 0:
                 if len(nindex) not in current["normal_indices"]:
                     current["normal_indices"][len(nindex)] = []
@@ -229,92 +229,83 @@ def parse_obj_format(file):
     n = current["vertices"].shape[0]
 
     current["triangular_vertices_indices"] = []
-    current["triangular_normals"] = []
+    current["triangular_normals_indices"] = []
 
     num_all_vertices = sum(len(current["vertex_indices"][num_vertices])
                            for num_vertices in current["vertex_indices"])
+    
+    # Triangularization
     for num_vertices in current["vertex_indices"]:
-        current["vertex_indices"][num_vertices] = convert_indices(
-            current["vertex_indices"][num_vertices], n)
+        current["vertex_indices"][num_vertices] = convert_indices(current["vertex_indices"][num_vertices], n)
         if not NO_NORMAL:
-            current["normal_indices"][num_vertices] = convert_indices(
-                current["normal_indices"][num_vertices], n)
+            current["normal_indices"][num_vertices] = convert_indices(current["normal_indices"][num_vertices], n)
 
-        # Triangularization
+        if len(current["vertex_indices"][num_vertices]) == 0:
+            continue
+
         indices_to_fetch = ((0, i - 1, i) for i in range(2, num_vertices))
         triangular_vertices_indices = []
-        triangular_normals = []
+        triangular_normals_indices = []
+        
         for index_to_fetch in indices_to_fetch:
-            triangular_vertices_indices.append(
-                current["vertex_indices"][num_vertices].reshape(-1, num_vertices)[:, index_to_fetch])
+            triangular_vertices_indices.extend(current["vertex_indices"][num_vertices].reshape(-1, num_vertices)[:, index_to_fetch])
             if not NO_NORMAL:
-                triangular_normals.append(
-                    current["normal_indices"][num_vertices].reshape(-1, num_vertices)[:, index_to_fetch])
-        triangular_vertices_indices = np.concatenate(
-            triangular_vertices_indices, dtype=np.uint32)
-        current["triangular_vertices_indices"].append(
-            triangular_vertices_indices)
+                triangular_normals_indices.extend(current["normal_indices"][num_vertices].reshape(-1, num_vertices)[:, index_to_fetch])
+
+        triangular_vertices_indices = np.concatenate(triangular_vertices_indices, dtype=np.uint32)
+        current["triangular_vertices_indices"].append(np.array(triangular_vertices_indices))
         if not NO_NORMAL:
-            triangular_normals = np.concatenate(
-                triangular_normals, dtype=np.uint32)
-            current["triangular_normals"].append(triangular_normals)
+            triangular_normals_indices = np.concatenate(triangular_normals_indices, dtype=np.uint32)
+            current["triangular_normals_indices"].append(np.array(triangular_normals_indices))
+        
+    current["triangular_vertices_indices"] = np.concatenate(current["triangular_vertices_indices"], dtype=np.uint32).reshape(-1, 3)
+    current["triangular_vertices"] = current["vertices"][current["triangular_vertices_indices"]].reshape(-1, 3)
 
-    current["triangular_vertices_indices"] = np.concatenate(
-        current["triangular_vertices_indices"])
-    current["triangular_vertices"] = current["vertices"][current["triangular_vertices_indices"]]
+    current["triangular_normals_indices"] = np.concatenate(current["triangular_normals_indices"], dtype=np.uint32).reshape(-1, 3)
+    current["triangular_normals"] = current["normals"][current["triangular_normals_indices"]].reshape(-1, 3)
 
-    v1 = current["vertices"][current["triangular_vertices_indices"][:, 1]
-                             ] - current["vertices"][current["triangular_vertices_indices"][:, 0]]
-    v2 = current["vertices"][current["triangular_vertices_indices"][:, 2]
-                             ] - current["vertices"][current["triangular_vertices_indices"][:, 1]]
-    computed_normals = np.cross(v1, v2) # Use cross product to calculate a normal of a face
-    computed_normals = computed_normals / np.linalg.norm(computed_normals, axis=0) # Normalize computed normals
+    v_a = current["vertices"][current["triangular_vertices_indices"][:, 0]]
+    v_b = current["vertices"][current["triangular_vertices_indices"][:, 1]]
+    v_c = current["vertices"][current["triangular_vertices_indices"][:, 2]]
 
-    # 3-1. Initialize computed normals
+    v1 = v_b - v_a
+    v2 = v_c - v_a
+
+    computed_normals = np.cross(v1, v2)
+    computed_normals = computed_normals / np.linalg.norm(computed_normals)
+
     current["computed_normals"] = np.zeros_like(current["vertices"])
-
-    # 3-2. Sum up all computed normals
     for (i, j, k), computed_normal in zip(current["triangular_vertices_indices"], computed_normals):
         current["computed_normals"][i] += computed_normal
         current["computed_normals"][j] += computed_normal
         current["computed_normals"][k] += computed_normal
 
-    # 3-3. Calculate computed averaged normals according to each point
     current["computed_normals"] = current["computed_normals"] / np.linalg.norm(current["computed_normals"], axis=0)
     current["computed_triangular_normals"] = current["computed_normals"][current["triangular_vertices_indices"]]
 
-    # 4. Store the result of computed normals
-    current["computed_triangular"] = np.hstack((
-        current["computed_triangular_normals"].reshape(-1, 3),
-        current["triangular_vertices"].reshape(-1, 3)
-    )).flatten()
-
     if not NO_NORMAL:
-        # 5-a. Store the result of vertices with vertex normals
-        current["triangular_normals"] = np.concatenate(current["triangular_normals"])
-        current["triangular_normals"] = current["normals"][current["triangular_normals"]]
-
         current["triangular"] = np.hstack((
             current["triangular_normals"].reshape(-1, 3),
             current["triangular_vertices"].reshape(-1, 3)
-        )).flatten()
+        )).reshape(-1, 3)
     else:
-        # 5-b. Store the result of vertices without vertex normals
-        current["triangular"] = current["triangular_vertices"].flatten()
+        current["triangular"] = current["triangular_vertices"].reshape(-1, 3)
 
-    return {
-        "_filename": file.name,
-        "base": {
-            "has_normals": not NO_NORMAL,
-            "num_vertices": {
-                "3": len(current["vertex_indices"][3]),
-                "4": len(current["vertex_indices"][4]),
-                "all": num_all_vertices,
-            },
-            "data": current["triangular"].astype(np.float32),
-            "computed_data": current["computed_triangular"].astype(np.float32)
-        }
-    }
+    current["computed_triangular"] = np.hstack((
+        current["computed_triangular_normals"].reshape(-1, 3),
+        current["triangular_vertices"].reshape(-1, 3)
+    )).reshape(-1, 3)
+
+    return {"_filename": file.name, "base": {
+        "has_normals": not NO_NORMAL,
+        "num_vertices": {
+            "3": len(current["vertex_indices"][3]),
+            "4": len(current["vertex_indices"][4]),
+            "all": num_all_vertices,
+        },
+        "data": current["triangular"].astype(np.float32),
+        "computed_data": current["computed_triangular"].astype(np.float32),
+    }}
 
 def read_model(model_path):
     with open(model_path) as obj_file:
