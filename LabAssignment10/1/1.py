@@ -167,23 +167,25 @@ def render(t):
     glScalef(0.5, 0.05, 0.05)
     drawCube_glDrawElements()
     glPopMatrix()
-    glPushMatrix()
-    glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (1, 1, 0, 1))
-    glMaterialfv(GL_FRONT, GL_SHININESS, 10)
-    glMaterialfv(GL_FRONT, GL_SPECULAR, (1, 1, 1, 1))
-    glTranslatef(1, 0, 0)
-    glScalef(0.25, 0.25, 0.25)
-    drawEndpointLines()
-    glPushMatrix()
-    glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, (1, 0, 0, 1))
-    glMaterialfv(GL_FRONT, GL_SHININESS, 10)
-    glMaterialfv(GL_FRONT, GL_SPECULAR, (1, 1, 1, 1))
-    drawVelocityLine((gCurPosition - gPrevPosition)[:3] / deltaT)
-    glPopMatrix()
-    glPopMatrix()
     glPopMatrix()
 
     glDisable(GL_LIGHTING)
+
+    glPushMatrix()
+    glTranslatef(*((R_ @ np.array([0,0,0,1]))[:3]))
+
+    glPushMatrix()
+    glScalef(0.25, 0.25, 0.25)
+    glColor3ub(255, 255, 0)
+    drawEndpointLines()
+    glPopMatrix()
+
+    glPushMatrix()
+    glColor3ub(255, 0, 0)
+    drawVelocityLine((gCurPosition - gPrevPosition)[:3] / deltaT)
+    glPopMatrix()
+
+    glPopMatrix()
 
 
 def key_callback(window, key, scancode, action, mods):
