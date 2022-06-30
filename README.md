@@ -14,14 +14,14 @@
 
 ### 2. Class Assignment 2 - OpenGL Model Viewer
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/ArXzxCN6KR0" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[![Class Assignment 2](http://img.youtube.com/vi/ArXzxCN6KR0/0.jpg)](https://youtu.be/ArXzxCN6KR0)
 
 - Implement super-fast OBJ model rendering using the parallel loader
 - Use `regex` module to implement a OBJ parser
 
 ### 3. Class Assignment 3 - OpenGL BVH Viewer
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/X9dRt1w7M1I" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[![Class Assignment 2](http://img.youtube.com/vi/X9dRt1w7M1I/0.jpg)](https://youtu.be/X9dRt1w7M1I)
 
 - With the help of Class Assignment 2, implement an efficient BVH parser using the parallel loader
 - Use `str` module to implement a BVH parser
